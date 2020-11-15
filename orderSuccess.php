@@ -21,6 +21,10 @@ if($result->num_rows > 0){
 <head>
 <title>Order Status - PHP Shopping Cart</title>
 <meta charset="utf-8">
+
+<!-- Bootstrap core CSS -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
@@ -29,8 +33,6 @@ if($result->num_rows > 0){
 
 <!-- Latest compiled JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-<!-- Bootstrap core CSS -->
-<link href="css/bootstrap.min.css" rel="stylesheet">
 
 <!-- Custom style -->
 <link href="css/style.css" rel="stylesheet">
@@ -69,18 +71,23 @@ if($result->num_rows > 0){
                     <tbody>
                         <?php 
                         // Get order items from the database 
-                        $result = $db->query("SELECT i.*, p.name, p.price FROM order_items as i LEFT JOIN products as p ON p.id = i.product_id WHERE i.order_id = ".$orderInfo['id']); 
+                        $result = $db->query("SELECT i.*, p.name, p.price, p.discount_price FROM order_items as i LEFT JOIN items as p ON p.id = i.product_id WHERE i.order_id = ".$orderInfo['id']); 
+                        
                         if($result->num_rows > 0){  
                             while($item = $result->fetch_assoc()){ 
-                                $price = $item["price"]; 
-                                $quantity = $item["quantity"]; 
+                                
+                                // echo  $stringRepresentation= json_encode($item);
+                                $original_price=$item["price"];
+                                $price = $item["discount_price"]; 
+                                $quantity = $item["quantity"];
+                                $sub_total_original = ($original_price*$quantity);
                                 $sub_total = ($price*$quantity); 
                         ?>
                         <tr>
                             <td><?php echo $item["name"]; ?></td>
-                            <td><?php echo '$'.$price.' USD'; ?></td>
+                            <td><?php echo '<s>'.$original_price.'</s> $'.$price.' USD'; ?></td>
                             <td><?php echo $quantity; ?></td>
-                            <td><?php echo '$'.$sub_total.' USD'; ?></td>
+                            <td><?php echo '<s>'.$sub_total_original.'</s> $'.$sub_total.' USD'; ?></td>
                         </tr>
                         <?php } 
                         } ?>

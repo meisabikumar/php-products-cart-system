@@ -74,9 +74,9 @@ if(!empty($sessData['status']['msg'])){
                         <li class="list-group-item d-flex justify-content-between lh-condensed">
                             <div>
                                 <h6 class="my-0"><?php echo $item["name"]; ?></h6>
-                                <small class="text-muted"><?php echo '$'.$item["price"]; ?>(<?php echo $item["qty"]; ?>)</small>
+                                <small class="text-muted"><?php echo '<s>'.$item["discount_price"].'</s>   $'.$item["price"]; ?>(<?php echo $item["qty"]; ?>)</small>
                             </div>
-                            <span class="text-muted"><?php echo '$'.$item["subtotal"]; ?></span>
+                            <span class="text-muted"><?php echo '<s>'.$item["subtotal_original"].'</s> $'.$item["subtotal"]; ?></span>
                         </li>
                         <?php } } ?>
                         <li class="list-group-item d-flex justify-content-between">

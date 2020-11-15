@@ -15,12 +15,13 @@ if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])){
         $productID = $_REQUEST['id']; 
          
         // Get product details 
-        $query = $db->query("SELECT * FROM products WHERE id = ".$productID); 
+        $query = $db->query("SELECT * FROM items WHERE id = ".$productID); 
         $row = $query->fetch_assoc(); 
         $itemData = array( 
             'id' => $row['id'], 
             'name' => $row['name'], 
-            'price' => $row['price'], 
+            'price' => $row['price'],
+            'discount_price' => $row["discount_price"], 
             'qty' => 1 
         ); 
          
@@ -29,6 +30,7 @@ if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])){
          
         // Redirect to cart page 
         $redirectLoc = $insertItem?'viewCart.php':'index.php'; 
+        
     }elseif($_REQUEST['action'] == 'updateCartItem' && !empty($_REQUEST['id'])){ 
         // Update item data in cart 
         $itemData = array( 

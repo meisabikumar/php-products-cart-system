@@ -49,8 +49,9 @@ function updateCartItem(obj,id){
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th width="45%">Product</th>
+                                <th width="20%">Product</th>
                                 <th width="10%">Price</th>
+                                <th width="10%">discount_price</th>
                                 <th width="15%">Quantity</th>
                                 <th class="text-right" width="20%">Total</th>
                                 <th width="10%"> </th>
@@ -66,8 +67,9 @@ function updateCartItem(obj,id){
                             <tr>
                                 <td><?php echo $item["name"]; ?></td>
                                 <td><?php echo '$'.$item["price"].' USD'; ?></td>
+                                <td><?php echo '$'.$item["discount_price"].' USD'; ?></td>
                                 <td><input class="form-control" type="number" value="<?php echo $item["qty"]; ?>" onchange="updateCartItem(this, '<?php echo $item["rowid"]; ?>')"/></td>
-                                <td class="text-right"><?php echo '$'.$item["subtotal"].' USD'; ?></td>
+                                <td class="text-right"><?php echo '$'.$item["subtotal"].' USD <s>'.$item["subtotal_original"].' </s>' ; ?></td>
                                 <td class="text-right"><button class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')?window.location.href='cartAction.php?action=removeCartItem&id=<?php echo $item["rowid"]; ?>':false;"><i class="itrash"></i> </button> </td>
                             </tr>
                             <?php } }else{ ?>
@@ -78,7 +80,7 @@ function updateCartItem(obj,id){
                                 <td></td>
                                 <td></td>
                                 <td><strong>Cart Total</strong></td>
-                                <td class="text-right"><strong><?php echo '$'.$cart->total().' USD'; ?></strong></td>
+                                <td class="text-right"><strong><?php echo '$'.$cart->total().' USD  <s>'.$cart->total_original().'</s>'; ?></strong></td>
                                 <td></td>
                             </tr>
                             <?php } ?>

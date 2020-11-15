@@ -20,7 +20,7 @@ class Cart {
         $this->cart_contents = !empty($_SESSION['cart_contents'])?$_SESSION['cart_contents']:NULL; 
         if ($this->cart_contents === NULL){ 
             // set some base values 
-            $this->cart_contents = array('cart_total' => 0, 'total_items' => 0); 
+            $this->cart_contents = array('cart_total' => 0,'cart_total_original' => 0, 'total_items' => 0); 
         } 
     } 
      
@@ -36,6 +36,7 @@ class Cart {
         // remove these so they don't create a problem when showing the cart table 
         unset($cart['total_items']); 
         unset($cart['cart_total']); 
+        unset($cart['cart_total_original']); 
  
         return $cart; 
     } 
@@ -46,7 +47,7 @@ class Cart {
      * @return    array 
      */ 
     public function get_item($row_id){ 
-        return (in_array($row_id, array('total_items', 'cart_total'), TRUE) OR ! isset($this->cart_contents[$row_id])) 
+        return (in_array($row_id, array('total_items', 'cart_total','cart_total_original'), TRUE) OR ! isset($this->cart_contents[$row_id])) 
             ? FALSE 
             : $this->cart_contents[$row_id]; 
     } 
@@ -66,6 +67,14 @@ class Cart {
     public function total(){ 
         return $this->cart_contents['cart_total']; 
     } 
+
+    /** 
+     * Cart Total: Returns the total price 
+     * @return    int 
+     */ 
+    public function total_original(){ 
+        return $this->cart_contents['cart_total_original']; 
+    } 
      
     /** 
      * Insert items into the cart and save it to the session 
@@ -76,7 +85,7 @@ class Cart {
         if(!is_array($item) OR count($item) === 0){ 
             return FALSE; 
         }else{ 
-            if(!isset($item['id'], $item['name'], $item['price'], $item['qty'])){ 
+            if(!isset($item['id'], $item['name'], $item['price'],$item['discount_price'], $item['qty'])){ 
                 return FALSE; 
             }else{ 
                 /* 
@@ -89,6 +98,10 @@ class Cart {
                 } 
                 // prep the price 
                 $item['price'] = (float) $item['price']; 
+
+                // prep the price 
+                $item['discount_price'] = (float) $item['discount_price']; 
+
                 // create a unique identifier for the item being inserted into the cart 
                 $rowid = md5($item['id']); 
                 // get quantity if it's already there and add it on 
@@ -152,16 +165,17 @@ class Cart {
      * @return    bool 
      */ 
     protected function save_cart(){ 
-        $this->cart_contents['total_items'] = $this->cart_contents['cart_total'] = 0; 
+        $this->cart_contents['total_items'] = $this->cart_contents['cart_total'] = $this->cart_contents['cart_total_original'] = 0; 
         foreach ($this->cart_contents as $key => $val){ 
             // make sure the array contains the proper indexes 
             if(!is_array($val) OR !isset($val['price'], $val['qty'])){ 
                 continue; 
             } 
-      
-            $this->cart_contents['cart_total'] += ($val['price'] * $val['qty']); 
+            $this->cart_contents['cart_total_original'] += ($val['price'] * $val['qty']); 
+            $this->cart_contents['cart_total'] += ($val['discount_price'] * $val['qty']); 
             $this->cart_contents['total_items'] += $val['qty']; 
-            $this->cart_contents[$key]['subtotal'] = ($this->cart_contents[$key]['price'] * $this->cart_contents[$key]['qty']); 
+            $this->cart_contents[$key]['subtotal_original'] = ($this->cart_contents[$key]['price'] * $this->cart_contents[$key]['qty']); 
+            $this->cart_contents[$key]['subtotal'] = ($this->cart_contents[$key]['discount_price'] * $this->cart_contents[$key]['qty']); 
         } 
          
         // if cart empty, delete it from the session 
@@ -191,7 +205,7 @@ class Cart {
      * @return    void 
      */ 
     public function destroy(){ 
-        $this->cart_contents = array('cart_total' => 0, 'total_items' => 0); 
+        $this->cart_contents = array('cart_total' => 0, 'cart_total_original' => 0, 'total_items' => 0); 
         unset($_SESSION['cart_contents']); 
     } 
 }
