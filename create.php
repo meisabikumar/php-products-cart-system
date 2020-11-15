@@ -1,6 +1,6 @@
 <?php
 // Include config file
-require_once "../../config.php";
+require_once "dbConfig.php";
 
 // Initialize the session
 session_start();
@@ -12,8 +12,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
  
 // Define variables and initialize with empty values
-$name = $address = $salary = $img = "";
-$name_err = $address_err = $salary_err = $img_err = "";
+$name = $description = $price = $discount_price = $status = $img = "";
+$name_err = $description_err = $price_err = $discount_price_err = $status_err = $img_err = "";
  
 // Processing form data when form is submitted
 if($_SERVER["REQUEST_METHOD"] == "POST"){
@@ -28,23 +28,46 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $name = $input_name;
     }
     
-    // Validate address
-    $input_address = trim($_POST["address"]);
-    if(empty($input_address)){
-        $address_err = "Please enter an address.";     
+    // Validate description
+    $input_description = trim($_POST["description"]);
+    if(empty($input_description)){
+        $description_err = "Please enter an description.";     
     } else{
-        $address = $input_address;
+        $description = $input_description;
     }
     
-    // Validate salary
-    $input_salary = trim($_POST["salary"]);
-    if(empty($input_salary)){
-        $salary_err = "Please enter the salary amount.";     
-    } elseif(!ctype_digit($input_salary)){
-        $salary_err = "Please enter a positive integer value.";
+    // Validate price
+    $input_price = trim($_POST["price"]);
+    if(empty($input_price)){
+        $price_err = "Please enter the price amount."; 
+        //use is_numeric() for float values   
+    } elseif(!ctype_digit($input_price)){
+        $price_err = "Please enter a positive integer value.";
     } else{
-        $salary = $input_salary;
+        $price = $input_price;
     }
+
+     // Validate discount_price
+     $input_discount_price = trim($_POST["discount_price"]);
+     if(empty($input_discount_price)){
+         $discount_price_err = "Please enter the price amount.";     
+     } elseif(!ctype_digit($input_discount_price)){
+         $discount_price_err = "Please enter a positive integer value.";
+     } else{
+         $discount_price = $input_discount_price;
+     }
+
+     // Validate status
+     $input_status = trim($_POST["status"]);
+     if(empty($input_status)){
+         $status_err = "Please input.";     
+     } elseif(!ctype_digit($input_status)){
+         $status_err = "Please enter 1 or 0.";
+     } else{
+         $status = $input_status;
+     }
+
+
     // empty($_FILES["fileToUpload"]["name"])
     //Validate image
     $input_image = $_FILES["fileToUpload"]["name"];
@@ -55,6 +78,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     }
 
 $target_dir = "uploads/";
+$fileName = basename($_FILES["fileToUpload"]["name"]);
 $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
 $uploadOk = 1;
 $imageFileType = pathinfo($target_file,PATHINFO_EXTENSION);
@@ -87,17 +111,16 @@ if (file_exists($target_file) && !empty($_FILES["fileToUpload"]["name"])) {
   }
   
   // Allow certain file formats
-  if(!empty($_FILES["fileToUpload"]["name"]) && $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg"
-  && $imageFileType != "gif" ) {
-    echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+  if(!empty($_FILES["fileToUpload"]["name"]) && $imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg") {
+    echo "Sorry, only JPG, JPEG, files are allowed.";
     $uploadOk = 0;
-    $img_err = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";    
+    $img_err = "Sorry, only .jpg, .jpeg, .png files are allowed. (extention name in lowercase)";    
   } 
 
 
     
     // Check input errors before inserting in database
-    if(empty($name_err) && empty($address_err) && empty($salary_err) && empty($img_err) ){
+    if(empty($name_err) && empty($description_err) && empty($price_err) && empty($discount_price_err) && empty($img_err) && empty($status_err) ){
 
           // Check if $uploadOk is set to 0 by an error
             if ($uploadOk == 0 && empty($img_err) ) {
@@ -114,21 +137,25 @@ if (file_exists($target_file) && !empty($_FILES["fileToUpload"]["name"])) {
             }
 
         // Prepare an insert statement
-        $sql = "INSERT INTO bangles (name, address, salary) VALUES (?, ?, ?)";
+        $sql = "INSERT INTO items (name, description, price, discount_price, file_name, created, status) VALUES (?, ?, ?, ?, ?, NOW(),?)";
          
         if($stmt = mysqli_prepare($link, $sql)){
             // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "sss", $param_name, $param_address, $param_salary);
+            mysqli_stmt_bind_param($stmt, "ssssss", $param_name, $param_description, $param_price, $param_discount_price, $param_file,$param_status);
             
             // Set parameters
             $param_name = $name;
-            $param_address = $address;
-            $param_salary = $salary;
+            $param_description = $description;
+            $param_price = $price;
+            $param_discount_price= $discount_price;
+            $param_file = $fileName;
+            $param_status = $status;
+
             
             // Attempt to execute the prepared statement
             if(mysqli_stmt_execute($stmt)){
                 // Records created successfully. Redirect to landing page
-                header("location: view-bangles-list.php");
+                header("location: admin.php");
                 exit();
             } else{
                 echo "Something went wrong. Please try again later.";
@@ -179,15 +206,33 @@ if (file_exists($target_file) && !empty($_FILES["fileToUpload"]["name"])) {
                             <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
                             <span class="help-block"><?php echo $name_err;?></span>
                         </div>
-                        <div class="form-group <?php echo (!empty($address_err)) ? 'has-error' : ''; ?>">
-                            <label>Address</label>
-                            <textarea name="address" class="form-control"><?php echo $address; ?></textarea>
-                            <span class="help-block"><?php echo $address_err;?></span>
+
+                        <div class="form-group <?php echo (!empty($description_err)) ? 'has-error' : ''; ?>">
+                            <label>description</label>
+                            <textarea name="description" class="form-control"><?php echo $description; ?></textarea>
+                            <span class="help-block"><?php echo $description_err;?></span>
                         </div>
-                        <div class="form-group <?php echo (!empty($salary_err)) ? 'has-error' : ''; ?>">
-                            <label>Salary</label>
-                            <input type="text" name="salary" class="form-control" value="<?php echo $salary; ?>">
-                            <span class="help-block"><?php echo $salary_err;?></span>
+
+                        <div class="form-group <?php echo (!empty($price_err)) ? 'has-error' : ''; ?>">
+                            <label>Price</label>
+                            <input type="text" name="price" class="form-control" value="<?php echo $price; ?>">
+                            <span class="help-block"><?php echo $price_err;?></span>
+                        </div>
+
+                        <div class="form-group <?php echo (!empty($discount_price_err)) ? 'has-error' : ''; ?>">
+                            <label>discounted Price</label>
+                            <input type="text" name="discount_price" class="form-control" value="<?php echo $discount_price; ?>">
+                            <span class="help-block"><?php echo $discount_price_err;?></span>
+                        </div>
+
+                        <div class="form-group <?php echo (!empty($status_err)) ? 'has-error' : ''; ?>">
+                            <label>status</label>
+                            <select class="form-control"name="status"  >                                
+                                <option value="1">Active</option>
+                                <option value="2">Inactive</option>
+                            </select>
+                            <?php //echo $status; ?>
+                            <span class="help-block"><?php echo $status_err;?></span>
                         </div>
 
                         <div class="form-group <?php echo (!empty($img_err)) ? 'has-error' : ''; ?>">
@@ -199,7 +244,7 @@ if (file_exists($target_file) && !empty($_FILES["fileToUpload"]["name"])) {
 
 
                         <input type="submit" class="btn btn-primary" value="Submit">
-                        <a href="view-bangles-list.php" class="btn btn-default">Cancel</a>
+                        <a href="admin.php" class="btn btn-default">Cancel</a>
                     </form>
                 </div>
             </div>        

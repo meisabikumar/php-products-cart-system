@@ -42,16 +42,14 @@ require_once 'dbConfig.php';
     <div class="row col-lg-12">
         <?php 
         // Get products from database 
-        $result = $db->query("SELECT * FROM items ORDER BY id DESC LIMIT 10"); 
+        $result = $db->query("SELECT * FROM products ORDER BY id DESC LIMIT 10"); 
         if($result->num_rows > 0){  
             while($row = $result->fetch_assoc()){ 
         ?>
         <div class="card col-lg-4">
             <div class="card-body">
-            <img src="uploads/<?php echo $row["file_name"]; ?>" alt="" width="300px">
                 <h5 class="card-title"><?php echo $row["name"]; ?></h5>
-                <h6 class="card-subtitle mb-2 text-muted">Price: <?php echo '$'.$row["price"].' INR'; ?></h6>
-                <h6 class="card-subtitle mb-2 text">Price: <?php echo '$'.$row["discount_price"].' INR'; ?></h6>
+                <h6 class="card-subtitle mb-2 text-muted">Price: <?php echo '$'.$row["price"].' USD'; ?></h6>
                 <p class="card-text"><?php echo $row["description"]; ?></p>
                 <a href="cartAction.php?action=addToCart&id=<?php echo $row["id"]; ?>" class="btn btn-primary">Add to Cart</a>
             </div>
